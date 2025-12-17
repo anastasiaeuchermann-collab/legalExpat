@@ -56,15 +56,25 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Fetch user from Supabase using admin client (bypasses RLS)
-        const { data: user, error } = await supabaseAdmin
+        const { data: userData, error } = await supabaseAdmin
           .from("users")
           .select("*")
           .eq("email", credentials.email)
           .single();
 
-        if (error || !user) {
+        if (error || !userData) {
           throw new Error("User not found");
         }
+
+        // Type assertion for user data
+        const user = userData as {
+          id: string;
+          email: string;
+          name: string;
+          password_hash: string;
+          role: string;
+          is_active: boolean;
+        };
 
         // Check if user is active
         if (!user.is_active) {
@@ -81,11 +91,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid password");
         }
 
-        // Update last login timestamp
-        await supabaseAdmin
-          .from("users")
-          .update({ last_login_at: new Date().toISOString() })
-          .eq("id", user.id);
+        // TODO: Update last login timestamp once database is set up
+        // await supabaseAdmin.from("users").update({ last_login_at: new Date().toISOString() }).eq("id", user.id);
 
         return {
           id: user.id,

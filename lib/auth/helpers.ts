@@ -180,15 +180,23 @@ export async function getUserProfile(userId?: string) {
   }
 
   // Get the base user data
-  const { data: userData, error: userError } = await supabaseAdmin
+  const { data: rawUserData, error: userError } = await supabaseAdmin
     .from('users')
     .select('*')
     .eq('id', user.id)
     .single();
 
-  if (userError || !userData) {
+  if (userError || !rawUserData) {
     return null;
   }
+
+  // Type assertion for user data
+  const userData = rawUserData as {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
 
   // Fetch the appropriate profile based on role
   if (userData.role === 'expat') {
