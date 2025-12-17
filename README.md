@@ -180,7 +180,17 @@ All API routes follow RESTful conventions:
 
 4. **Set up the database**
 
-   Run the Supabase migrations (to be created) to set up your database schema.
+   Run the Supabase migrations to set up your database schema:
+
+   ```bash
+   # Using Supabase CLI
+   supabase link --project-ref your-project-ref
+   supabase db push
+   ```
+
+   Or manually run each migration file in the `supabase/migrations/` directory through the Supabase dashboard SQL editor.
+
+   See `/supabase/README.md` for detailed migration instructions.
 
 5. **Run the development server**
    ```bash
@@ -217,58 +227,51 @@ All API routes follow RESTful conventions:
 
 ## Database Setup
 
-### Supabase Tables
+The complete database schema is managed through Supabase migrations in the `/supabase/migrations/` directory.
 
-You'll need to create the following tables in your Supabase project:
+### Schema Overview
 
-#### users
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(50) NOT NULL CHECK (role IN ('expat', 'provider', 'admin')),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
+The database includes the following main entities:
 
-#### expat_profiles
-```sql
-CREATE TABLE expat_profiles (
-  id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  nationality VARCHAR(100),
-  residence_status VARCHAR(100),
-  location VARCHAR(255),
-  phone_number VARCHAR(50),
-  preferred_languages TEXT[],
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
+**Users & Profiles**
+- Users (base table for all user types)
+- Expat Profiles (extended info for clients)
+- Provider Profiles (extended info for legal experts)
+- Provider Availability & Blocked Dates
 
-#### provider_profiles
-```sql
-CREATE TABLE provider_profiles (
-  id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  business_name VARCHAR(255) NOT NULL,
-  description TEXT,
-  specializations TEXT[],
-  languages TEXT[],
-  location VARCHAR(255),
-  hourly_rate DECIMAL(10, 2),
-  verified BOOLEAN DEFAULT FALSE,
-  rating DECIMAL(3, 2) DEFAULT 0,
-  total_reviews INTEGER DEFAULT 0,
-  license_number VARCHAR(100),
-  years_of_experience INTEGER,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
+**Services**
+- Service Categories (13 predefined categories)
+- Services (provider service listings)
+- Service Pricing Tiers (for tiered pricing)
+- Service Tags (30+ tags for filtering)
 
-See the `/docs/database-schema.sql` file (to be created) for complete schema.
+**Bookings & Documents**
+- Bookings (with complete status workflow)
+- Booking Documents (file uploads)
+- Booking Status History (audit trail)
+
+**Payments**
+- Payments (Stripe integration)
+- Payment Events (webhook handling)
+- Refunds
+- Provider Payouts (escrow system)
+
+**Communication**
+- Reviews (with helpful votes)
+- Message Threads
+- Messages (with attachments)
+
+### Running Migrations
+
+See `/supabase/README.md` for detailed instructions on:
+- Running migrations with Supabase CLI
+- Row Level Security (RLS) policies
+- Database indexes and performance optimization
+- Seed data for service categories and tags
+
+### TypeScript Types
+
+Type-safe database types are available in `/types/database.ts` matching the complete schema.
 
 ## Deployment
 
