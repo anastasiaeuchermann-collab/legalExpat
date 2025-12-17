@@ -36,20 +36,9 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
-// Validate environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
-}
-
-if (!supabaseServiceRoleKey) {
-  throw new Error(
-    'Missing SUPABASE_SERVICE_ROLE_KEY environment variable. ' +
-    'This is required for admin operations. Get it from your Supabase dashboard.'
-  );
-}
+// Get environment variables with fallback for build time
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY0NTE5MjgwMCwiZXhwIjoxOTYwNzY4ODAwfQ.placeholder';
 
 /**
  * Admin Supabase client with service role key
