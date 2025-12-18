@@ -7,6 +7,7 @@
 
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import bcrypt from "bcryptjs";
 import type { UserRole } from "@/types/database";
@@ -44,6 +45,12 @@ declare module "next-auth/jwt" {
  */
 export const authOptions: NextAuthOptions = {
   providers: [
+    // Google OAuth Provider (only for expats)
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
+    // Email/Password Provider
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -105,13 +112,73 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     /**
+     * SignIn callback - runs when user signs in
+     * Handle OAuth sign-ins by creating user in database if needed
+     */
+    async signIn({ user, account, profile }) {
+      // For OAuth providers (Google), create user in database if doesn't exist
+      if (account?.provider === "google") {
+        try {
+          // Check if user exists
+          const { data: existingUser } = await supabaseAdmin
+            .from("users")
+            .select("id, role")
+            .eq("email", user.email!)
+            .single();
+
+          if (!existingUser) {
+            // Create new expat user (Google OAuth is only for expats)
+            const { error: userError } = await supabaseAdmin
+              .from("users")
+              .insert({
+                email: user.email!,
+                name: user.name || "",
+                role: "expat",
+                email_verified: true, // OAuth emails are pre-verified
+                is_active: true,
+                password_hash: "", // No password for OAuth users
+              });
+
+            if (userError) {
+              console.error("Error creating OAuth user:", userError);
+              return false;
+            }
+          }
+          return true;
+        } catch (error) {
+          console.error("Error in OAuth sign-in:", error);
+          return false;
+        }
+      }
+
+      // For credentials provider, authorization is already handled
+      return true;
+    },
+
+    /**
      * JWT callback - runs whenever a JWT is created or updated
      * Store user ID and role in the token
      */
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session, account }) {
+      // On sign-in, fetch user data from database
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
+        // For OAuth sign-ins, we need to fetch the user's role from database
+        if (account?.provider === "google") {
+          const { data: dbUser } = await supabaseAdmin
+            .from("users")
+            .select("id, role")
+            .eq("email", user.email!)
+            .single();
+
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role as UserRole;
+          }
+        } else {
+          // For credentials, user object already has id and role
+          token.id = user.id;
+          token.role = user.role;
+        }
       }
 
       // Handle session updates (e.g., when user profile changes)
