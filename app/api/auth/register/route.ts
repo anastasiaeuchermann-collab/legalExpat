@@ -4,6 +4,11 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { registerSchema } from "@/lib/validations/auth";
 import { randomBytes } from "crypto";
 
+/**
+ * User Registration API Route
+ * Handles new user signup with email verification
+ * Updated: 2024-12-18
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
