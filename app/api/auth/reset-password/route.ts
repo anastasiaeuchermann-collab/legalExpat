@@ -31,18 +31,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user with this reset token
-    const { data: user, error: findError } = await supabaseAdmin
+    const { data: rawUser, error: findError } = await supabaseAdmin
       .from("users")
       .select("id, email, password_reset_expires, is_active")
       .eq("password_reset_token", token)
       .single();
 
-    if (findError || !user) {
+    if (findError || !rawUser) {
       return NextResponse.json(
         { error: "Invalid or expired reset token" },
         { status: 400 }
       );
     }
+
+    // Type assertion for user data
+    const user = rawUser as {
+      id: string;
+      email: string;
+      password_reset_expires: string;
+      is_active: boolean;
+    };
 
     // Check if account is active
     if (!user.is_active) {

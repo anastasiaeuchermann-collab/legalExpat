@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -18,14 +18,7 @@ export default function VerifyEmailPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
 
-  useEffect(() => {
-    // If token is present in URL, automatically verify
-    if (token) {
-      verifyEmail(token);
-    }
-  }, [token]);
-
-  const verifyEmail = async (verificationToken: string) => {
+  const verifyEmail = useCallback(async (verificationToken: string) => {
     setState("verifying");
     setMessage("");
 
@@ -62,7 +55,14 @@ export default function VerifyEmailPage() {
       setState("error");
       setMessage("An unexpected error occurred during verification");
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    // If token is present in URL, automatically verify
+    if (token) {
+      verifyEmail(token);
+    }
+  }, [token, verifyEmail]);
 
   const handleResendEmail = async () => {
     if (!email) {

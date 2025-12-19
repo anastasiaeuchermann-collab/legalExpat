@@ -13,18 +13,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user with this verification token
-    const { data: user, error: findError } = await supabaseAdmin
+    const { data: rawUser, error: findError } = await supabaseAdmin
       .from("users")
       .select("id, email, email_verified, verification_token_expires, role")
       .eq("verification_token", token)
       .single();
 
-    if (findError || !user) {
+    if (findError || !rawUser) {
       return NextResponse.json(
         { error: "Invalid verification token" },
         { status: 400 }
       );
     }
+
+    // Type assertion for user data
+    const user = rawUser as {
+      id: string;
+      email: string;
+      email_verified: boolean;
+      verification_token_expires: string;
+      role: string;
+    };
 
     // Check if already verified
     if (user.email_verified) {
@@ -95,18 +104,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Find user with this email
-    const { data: user, error: findError } = await supabaseAdmin
+    const { data: rawUser, error: findError } = await supabaseAdmin
       .from("users")
       .select("id, email, email_verified, verification_token")
       .eq("email", email.toLowerCase())
       .single();
 
-    if (findError || !user) {
+    if (findError || !rawUser) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
+
+    // Type assertion for user data
+    const user = rawUser as {
+      id: string;
+      email: string;
+      email_verified: boolean;
+      verification_token: string | null;
+    };
 
     // Check if already verified
     if (user.email_verified) {

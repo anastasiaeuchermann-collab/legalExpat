@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const { email } = validationResult.data;
 
     // Find user with this email
-    const { data: user, error: findError } = await supabaseAdmin
+    const { data: rawUser, error: findError } = await supabaseAdmin
       .from("users")
       .select("id, email, is_active")
       .eq("email", email.toLowerCase())
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     // Always return success message even if user doesn't exist (security best practice)
     // This prevents email enumeration attacks
-    if (findError || !user) {
+    if (findError || !rawUser) {
       return NextResponse.json(
         {
           message:
@@ -39,6 +39,13 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       );
     }
+
+    // Type assertion for user data
+    const user = rawUser as {
+      id: string;
+      email: string;
+      is_active: boolean;
+    };
 
     // Check if account is active
     if (!user.is_active) {
