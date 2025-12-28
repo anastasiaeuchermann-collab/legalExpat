@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
     // Update user to mark email as verified
     const { error: updateError } = await supabaseAdmin
       .from("users")
+      // @ts-ignore - Supabase type inference issue
       .update({
         email_verified: true,
         verification_token: null,
@@ -142,6 +143,7 @@ export async function GET(request: NextRequest) {
     // Update user with new token
     const { error: updateError } = await supabaseAdmin
       .from("users")
+      // @ts-ignore - Supabase type inference issue
       .update({
         verification_token: newToken,
         verification_token_expires: verificationExpiry.toISOString(),

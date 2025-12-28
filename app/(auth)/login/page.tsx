@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { loginSchema } from "@/lib/validations/auth";
 import { z } from "zod";
 
+// Opt out of static prerendering since this page uses useSearchParams
+export const dynamic = 'force-dynamic';
+
 type LoginFormData = z.infer<typeof loginSchema>;
 type FormErrors = Partial<Record<keyof LoginFormData | "root", string>>;
 

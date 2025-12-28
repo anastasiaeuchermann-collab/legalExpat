@@ -11,6 +11,9 @@ import { z } from "zod";
 type FormData = z.infer<typeof passwordResetSchema>;
 type FormErrors = Partial<Record<keyof FormData | "root", string>>;
 
+// Opt out of static prerendering since this page uses useSearchParams
+export const dynamic = 'force-dynamic';
+
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

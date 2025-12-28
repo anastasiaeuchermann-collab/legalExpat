@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
+// Opt out of static prerendering since this page uses useSearchParams
+export const dynamic = 'force-dynamic';
+
 export default function VerifyPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");

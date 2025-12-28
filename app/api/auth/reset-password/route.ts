@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     // Update user password and clear reset token
     const { error: updateError } = await supabaseAdmin
       .from("users")
+      // @ts-ignore - Supabase type inference issue
       .update({
         password_hash: passwordHash,
         password_reset_token: null,

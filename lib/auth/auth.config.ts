@@ -130,6 +130,7 @@ export const authOptions: NextAuthOptions = {
             // Create new expat user (Google OAuth is only for expats)
             const { error: userError } = await supabaseAdmin
               .from("users")
+              // @ts-ignore - Supabase type inference issue
               .insert({
                 email: user.email!,
                 name: user.name || "",
@@ -164,11 +165,13 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         // For OAuth sign-ins, we need to fetch the user's role from database
         if (account?.provider === "google") {
-          const { data: dbUser } = await supabaseAdmin
+          const { data: rawDbUser } = await supabaseAdmin
             .from("users")
             .select("id, role")
             .eq("email", user.email!)
             .single();
+
+          const dbUser = rawDbUser as { id: string; role: string } | null;
 
           if (dbUser) {
             token.id = dbUser.id;

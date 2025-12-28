@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
     // Update user with reset token
     const { error: updateError } = await supabaseAdmin
       .from("users")
+      // @ts-ignore - Supabase type inference issue with placeholder credentials
       .update({
         password_reset_token: resetToken,
         password_reset_expires: resetExpiry.toISOString(),

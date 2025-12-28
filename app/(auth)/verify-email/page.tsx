@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/Button";
 
 type VerificationState = "pending" | "verifying" | "success" | "error" | "expired";
 
+// Opt out of static prerendering since this page uses useSearchParams
+export const dynamic = 'force-dynamic';
+
 export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

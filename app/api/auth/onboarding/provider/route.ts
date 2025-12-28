@@ -16,11 +16,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user role
-    const { data: user } = await supabaseAdmin
+    const { data: rawUser } = await supabaseAdmin
       .from("users")
       .select("role")
       .eq("id", session.user.id)
       .single();
+
+    const user = rawUser as { role: string } | null;
 
     if (!user || user.role !== "provider") {
       return NextResponse.json(
@@ -68,6 +70,7 @@ export async function POST(request: NextRequest) {
       // Update existing profile
       const { error: updateError } = await supabaseAdmin
         .from("provider_profiles")
+        // @ts-ignore - Supabase type inference issue
         .update({
           business_name: businessName,
           description,
@@ -95,6 +98,7 @@ export async function POST(request: NextRequest) {
       // Create new profile - provider starts with 'pending' verification status
       const { error: createError } = await supabaseAdmin
         .from("provider_profiles")
+        // @ts-ignore - Supabase type inference issue
         .insert({
           id: session.user.id,
           business_name: businessName,

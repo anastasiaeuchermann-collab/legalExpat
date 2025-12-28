@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
     // Create user
     const { data: newUser, error: createError } = await supabaseAdmin
       .from("users")
+      // @ts-ignore - Supabase type inference issue
       .insert({
         email: email.toLowerCase(),
         name,
@@ -65,13 +66,21 @@ export async function POST(request: NextRequest) {
       .select("id, email, name, role")
       .single();
 
-    if (createError) {
+    if (createError || !newUser) {
       console.error("Error creating user:", createError);
       return NextResponse.json(
         { error: "Failed to create user" },
         { status: 500 }
       );
     }
+
+    // Type assertion for new user data
+    const user = newUser as {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+    };
 
     // TODO: Send verification email
     // await sendVerificationEmail(email, verificationToken);
@@ -89,10 +98,10 @@ export async function POST(request: NextRequest) {
             ? "Registration successful! Please check your email to verify your account. Your account will be activated after admin approval."
             : "Registration successful! Please check your email to verify your account.",
         user: {
-          id: newUser.id,
-          email: newUser.email,
-          name: newUser.name,
-          role: newUser.role,
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
         },
         requiresVerification: true,
         requiresApproval: userType === "provider",
