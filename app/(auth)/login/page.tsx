@@ -87,8 +87,18 @@ export default function LoginPage() {
         return;
       }
 
-      // Success - redirect to callback URL
-      router.push(callbackUrl);
+      // Success - redirect based on user role
+      // Fetch session to get user role
+      const sessionResponse = await fetch("/api/auth/session");
+      const session = await sessionResponse.json();
+
+      if (session?.user?.role === "expat") {
+        router.push("/dashboard/expat");
+      } else if (session?.user?.role === "provider") {
+        router.push("/dashboard/provider");
+      } else {
+        router.push("/");
+      }
       router.refresh();
     } catch (error) {
       console.error("Login error:", error);
